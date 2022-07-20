@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import React, { Fragment, forwardRef, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, shallowEqual, useStore, useDispatch } from 'react-redux';
+import { useSelector, shallowEqual, useDispatch } from 'react-redux';
 import EntityTableToolbar from './EntityTableToolbar';
 import { TableToolbar } from '@redhat-cloud-services/frontend-components/TableToolbar';
 import { ErrorState } from '@redhat-cloud-services/frontend-components/ErrorState';
@@ -39,7 +39,6 @@ const propsCache = () => {
 const InventoryTable = forwardRef(({ // eslint-disable-line react/display-name
     onRefresh,
     children,
-    inventoryRef,
     items,
     total: propsTotal,
     page: propsPage,
@@ -89,7 +88,9 @@ const InventoryTable = forwardRef(({ // eslint-disable-line react/display-name
     const sortBy = useSelector(({ entities: { sortBy: invSortBy } }) => (
         hasItems ? propsSortBy : invSortBy
     ), shallowEqual);
-
+    const activeFilters = useSelector(({ entities }) => (
+        entities?.activeFilters
+    ));
     const reduxLoaded = useSelector(({ entities }) => (
         hasItems && isLoaded !== undefined ? (isLoaded && entities?.loaded) : entities?.loaded
     ));
@@ -107,7 +108,6 @@ const InventoryTable = forwardRef(({ // eslint-disable-line react/display-name
     const loaded = reduxLoaded && !initialLoadingActive;
 
     const dispatch = useDispatch();
-    const store = useStore();
 
     const cache = useRef(propsCache());
     cache.current.updateProps({
@@ -127,7 +127,6 @@ const InventoryTable = forwardRef(({ // eslint-disable-line react/display-name
      * @param {*} options new options to be applied, like pagination, filters, etc.
      */
     const onRefreshData = (options = {}, disableOnRefresh) => {
-        const { activeFilters } = store.getState().entities;
         const cachedProps = cache.current?.getProps() || {};
         const currPerPage = options?.per_page || options?.perPage || cachedProps.perPage;
 
@@ -241,7 +240,6 @@ InventoryTable.propTypes = {
     autoRefresh: PropTypes.bool,
     onRefresh: PropTypes.func,
     children: PropTypes.node,
-    inventoryRef: PropTypes.object,
     items: PropTypes.array,
     total: PropTypes.number,
     page: PropTypes.number,

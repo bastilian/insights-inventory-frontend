@@ -1,12 +1,10 @@
 /* eslint-disable camelcase */
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { shallowEqual, useDispatch, useSelector, useStore } from 'react-redux';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import './inventory.scss';
 import { PageHeader, PageHeaderTitle, Main } from '@redhat-cloud-services/frontend-components';
-import { tableReducer, RegistryContext } from '../store';
-import { mergeWithEntities } from '../store/reducers';
 import * as actions from '../store/actions';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { addNotification as addNotificationAction } from '@redhat-cloud-services/frontend-components-notifications/redux';
@@ -14,7 +12,7 @@ import DeleteModal from '../Utilities/DeleteModal';
 import { TextInputModal } from '../components/SystemDetails/GeneralInfo';
 import flatMap from 'lodash/flatMap';
 import { defaultFilters, generateFilter } from '../Utilities/constants';
-import { inventoryConnector } from '../Utilities/inventoryConnector';
+import InventoryTable from '../modules/InventoryTable';
 import { useWritePermissions } from '../Utilities/constants';
 
 const reloadWrapper = (event, callback) => {
@@ -79,12 +77,9 @@ const Inventory = ({
     perPage,
     initialLoading
 }) => {
-    const [InvCmp, setInvCmp] = useState();
-    document.title = 'Inventory | Red Hat Insights';
+    // document.title = 'Inventory | Red Hat Insights';
     const history = useHistory();
-    const store = useStore();
-    const { getRegistry } = useContext(RegistryContext);
-    const inventory = useRef(null);
+    const inventory = useRef();
     const [isModalOpen, handleModalToggle] = useState(false);
     const [currentSytem, activateSystem] = useState({});
     const [filters, onSetfilters] = useState([]);
@@ -158,22 +153,7 @@ const Inventory = ({
                 }
             });
         });
-        dispatch(actions.clearNotifications());
-        const { InventoryTable } = inventoryConnector(store, undefined, undefined, true);
-        setInvCmp(() => InventoryTable);
-        getRegistry().register({
-            ...mergeWithEntities(tableReducer)
-        });
 
-        const filtersList = generateFilter(status, source, tagsFilter, filterbyName, operatingSystem);
-        filtersList?.length > 0 && dispatch(actions.setFilter(filtersList));
-
-        if (perPage || page) {
-            dispatch(actions.setPagination(
-                Array.isArray(page) ? page[0] : page,
-                Array.isArray(perPage) ? perPage[0] : perPage
-            ));
-        }
     }, []);
 
     const calculateSelected = () => selected ? selected.size : 0;
@@ -186,83 +166,97 @@ const Inventory = ({
             <Main>
                 <Grid gutter="md">
                     <GridItem span={12}>
-                        {
-                            InvCmp && <InvCmp
-                                history={history}
-                                store={store}
-                                customFilters={globalFilter}
-                                isFullView
-                                ref={inventory}
-                                showTags
-                                onRefresh={onRefresh}
-                                hasCheckbox={writePermissions}
-                                autoRefresh
-                                initialLoading={initialLoading}
-                                {...(writePermissions && {
-                                    actions: [
-                                        {
-                                            title: 'Delete',
-                                            onClick: (_event, _index, { id: systemId, display_name: displayName }) => {
-                                                activateSystem(() => ({
-                                                    id: systemId,
-                                                    displayName
-                                                }));
-                                                handleModalToggle(() => true);
-                                            }
-                                        }, {
-                                            title: 'Edit',
-                                            onClick: (_event, _index, data) => {
-                                                activateSystem(() => data);
-                                                onEditOpen(() => true);
-                                            }
+                        <InventoryTable
+                            customFilters={globalFilter}
+                            isFullView
+                            ref={inventory}
+                            showTags
+                            onRefresh={onRefresh}
+                            hasCheckbox={writePermissions}
+                            autoRefresh
+                            initialLoading={initialLoading}
+                            onLoad={() => {
+                                console.log('Inventory Table onload. yolo');
+                                // getRegistry().register(mergeWithEntities(tableReducer));
+
+                                // TODO This should not happen here, but higher up.
+                                dispatch(actions.clearNotifications());
+
+                                // TODO this should be in the InventoryTable itself.
+                                if (perPage || page) {
+                                    dispatch(actions.setPagination(
+                                        Array.isArray(page) ? page[0] : page,
+                                        Array.isArray(perPage) ? perPage[0] : perPage
+                                    ));
+                                }
+
+                                const filtersList = generateFilter(status, source, tagsFilter, filterbyName, operatingSystem);
+                                filtersList?.length > 0 && dispatch(actions.setFilter(filtersList));
+                            }}
+                            {...(writePermissions && {
+                                actions: [
+                                    {
+                                        title: 'Delete',
+                                        onClick: (_event, _index, { id: systemId, display_name: displayName }) => {
+                                            activateSystem(() => ({
+                                                id: systemId,
+                                                displayName
+                                            }));
+                                            handleModalToggle(() => true);
                                         }
-                                    ],
-                                    actionsConfig: {
-                                        actions: [{
-                                            label: 'Delete',
-                                            props: {
-                                                isDisabled: calculateSelected() === 0,
-                                                variant: 'secondary',
-                                                onClick: () => {
-                                                    activateSystem(Array.from(selected.values()));
-                                                    handleModalToggle(true);
-                                                }
-                                            }
-                                        }]
-                                    },
-                                    bulkSelect: {
-                                        count: calculateSelected(),
-                                        id: 'bulk-select-systems',
-                                        items: [{
-                                            title: 'Select none (0)',
-                                            onClick: () => {
-                                                onSelectRows(-1, false);
-                                            }
-                                        },
-                                        {
-                                            ...loaded && rows && rows.length > 0 ? {
-                                                title: `Select page (${ rows.length })`,
-                                                onClick: () => {
-                                                    onSelectRows(0, true);
-                                                }
-                                            } : {}
-                                        }],
-                                        checked: calculateChecked(rows, selected),
-                                        onSelect: (value) => {
-                                            onSelectRows(0, value);
+                                    }, {
+                                        title: 'Edit',
+                                        onClick: (_event, _index, data) => {
+                                            activateSystem(() => data);
+                                            onEditOpen(() => true);
                                         }
                                     }
-                                })}
-                                tableProps={{
-                                    canSelectAll: false
-                                }}
-                                onRowClick={(_e, id, app) => history.push(`/${id}${app ? `/${app}` : ''}`)}
-                            />
-                        }
+                                ],
+                                actionsConfig: {
+                                    actions: [{
+                                        label: 'Delete',
+                                        props: {
+                                            isDisabled: calculateSelected() === 0,
+                                            variant: 'secondary',
+                                            onClick: () => {
+                                                activateSystem(Array.from(selected.values()));
+                                                handleModalToggle(true);
+                                            }
+                                        }
+                                    }]
+                                },
+                                bulkSelect: {
+                                    count: calculateSelected(),
+                                    id: 'bulk-select-systems',
+                                    items: [{
+                                        title: 'Select none (0)',
+                                        onClick: () => {
+                                            onSelectRows(-1, false);
+                                        }
+                                    },
+                                    {
+                                        ...loaded && rows && rows.length > 0 ? {
+                                            title: `Select page (${ rows.length })`,
+                                            onClick: () => {
+                                                onSelectRows(0, true);
+                                            }
+                                        } : {}
+                                    }],
+                                    checked: calculateChecked(rows, selected),
+                                    onSelect: (value) => {
+                                        onSelectRows(0, value);
+                                    }
+                                }
+                            })}
+                            tableProps={{
+                                canSelectAll: false
+                            }}
+                            onRowClick={(_e, id, app) => history.push(`/${id}${app ? `/${app}` : ''}`)}
+                        />
                     </GridItem>
                 </Grid>
             </Main>
-            <DeleteModal
+            { isModalOpen && <DeleteModal
                 handleModalToggle={handleModalToggle}
                 isModalOpen={isModalOpen}
                 currentSytems={currentSytem}
@@ -289,9 +283,9 @@ const Inventory = ({
                     dispatch(reloadWrapper(actions.deleteEntity(removeSystems, displayName), () => onRefresh({ filters })));
                     handleModalToggle(false);
                 }}
-            />
+            /> }
 
-            <TextInputModal
+            {ediOpen && <TextInputModal
                 title="Edit display name"
                 isOpen={ediOpen}
                 value={currentSytem.display_name}
@@ -300,7 +294,7 @@ const Inventory = ({
                     dispatch(actions.editDisplayName(currentSytem.id, value));
                     onEditOpen(false);
                 }}
-            />
+            />}
         </React.Fragment>
     );
 };

@@ -1,8 +1,9 @@
 import { Route, Switch, matchPath, useHistory } from 'react-router-dom';
 import React, { lazy, Suspense, useContext, useEffect } from 'react';
 import { tagsMapper } from './constants';
-import { reducers, RegistryContext, tableReducer } from './store';
-import { mergeWithEntities } from './store/reducers';
+import { reducers, RegistryContext, tableReducer, entitesDetailReducer } from './store';
+import { mergeWithEntities, mergeWithDetail } from './store/reducers';
+import systemProfileStore from './store/systemProfileStore';
 
 const InventoryTable = lazy(() => import('./routes/InventoryTable'));
 const InventoryDetail = lazy(() => import('./routes/InventoryDetail'));
@@ -27,7 +28,9 @@ export const Routes = () => {
     useEffect(() => {
         getRegistry().register({
             ...reducers,
-            ...mergeWithEntities(tableReducer)
+            ...mergeWithEntities(tableReducer),
+            ...mergeWithDetail(entitesDetailReducer()),
+            systemProfileStore
         });
     }, [getRegistry]);
     const history = useHistory();

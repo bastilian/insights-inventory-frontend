@@ -1,39 +1,34 @@
-import React, { useContext, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { useSelector, useStore, useDispatch } from 'react-redux';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useRouteMatch } from 'react-router-dom';
 import './inventory.scss';
-import { Link, useHistory } from 'react-router-dom';
-import { entitesDetailReducer, RegistryContext } from '../store';
-import * as actions from '../store/actions';
+import { Link } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
 import { Skeleton, SkeletonSize, PageHeader, Main } from '@redhat-cloud-services/frontend-components';
 import classnames from 'classnames';
+import { loadEntity } from '../store/actions';
 import { routes } from '../Routes';
 import InventoryDetailHead from '../modules/InventoryDetailHead';
 import AppInfo from '../modules/AppInfo';
 import DetailWrapper from '../modules/DetailWrapper';
 import { useWritePermissions } from '../Utilities/constants';
 
-const Inventory = () => {
-    const store = useStore();
-    const history = useHistory();
+const Inventory = ({ showTags }) => {
     const dispatch = useDispatch();
     const { params: { inventoryId } } = useRouteMatch('/:inventoryId');
-    const { getRegistry } = useContext(RegistryContext);
     const writePermissions = useWritePermissions();
     const entityLoaded = useSelector(({ entityDetails }) => entityDetails?.loaded);
     const entity = useSelector(({ entityDetails }) => entityDetails?.entity);
     const activeApp = useSelector(({ entityDetails }) => entityDetails?.activeApp?.appName);
     const firstApp = useSelector(({ entityDetails }) => entityDetails?.activeApps?.[0]);
     const currentApp = activeApp || (firstApp && firstApp.name);
-    const clearNotifications = () => dispatch(actions.clearNotifications());
+    // const clearNotifications = () => dispatch(actions.clearNotifications());
 
     useEffect(() => {
         insights.chrome?.hideGlobalFilter?.(true);
         insights.chrome.appAction('system-detail');
-        clearNotifications();
+        // clearNotifications();
 
         // BZ: RHEL cockpit is linking to crc/insights/inventory/{}/insights
         // which results in a page error, catch that and redirect
@@ -42,15 +37,20 @@ const Inventory = () => {
         if (splitUrl.length === 3) {
             window.location = `${splitUrl[0]}/insights${splitUrl[1]}`;
         }
+
+        const currId = inventoryId || location.pathname.replace(/\/$/, '').split('/').pop();
+        if (!entity || !(entity?.id === currId) || !entityLoaded) {
+            dispatch(loadEntity(currId, { hasItems: true }, { showTags }));
+        }
     }, []);
 
     const additionalClasses = {
         'ins-c-inventory__detail--general-info': currentApp && currentApp === 'general_information'
     };
 
-    if (entity) {
-        document.title = `${entity.display_name} | Inventory | Red Hat Insights`;
-    }
+    // if (entity) {
+    //     document.title = `${entity.display_name} | Inventory | Red Hat Insights`;
+    // }
 
     useEffect(() => {
         insights?.chrome?.appObjectId?.(entity?.id);
@@ -60,11 +60,6 @@ const Inventory = () => {
         <DetailWrapper
             hideInvLink
             showTags
-            store={store}
-            history={history}
-            onLoad={({ mergeWithDetail, INVENTORY_ACTION_TYPES }) => {
-                getRegistry().register(mergeWithDetail(entitesDetailReducer(INVENTORY_ACTION_TYPES)));
-            }}
         >
             <PageHeader className={classnames('pf-m-light ins-inventory-detail', additionalClasses)} >
                 <Breadcrumb ouiaId="systems-list">
@@ -82,37 +77,24 @@ const Inventory = () => {
                         </div>
                     </BreadcrumbItem>
                 </Breadcrumb>
-                {
-                    <InventoryDetailHead
-                        store={store}
-                        history={history}
-                        fallback=""
-                        hideBack
-                        showTags
-                        hideInvLink
-                        showDelete={writePermissions}
-                        hideInvDrawer
-                    />
-                }
+                {entityLoaded && <InventoryDetailHead
+                    fallback=""
+                    hideBack
+                    showTags
+                    hideInvLink
+                    showDelete={writePermissions}
+                    hideInvDrawer
+                />}
             </PageHeader>
             <Main className={classnames(additionalClasses)}>
                 <Grid gutter="md">
                     <GridItem span={12}>
-                        <AppInfo
-                            showTags
-                            fallback=""
-                            store={store}
-                            history={history}
-                        />
+                        {entityLoaded && <AppInfo showTags />}
                     </GridItem>
                 </Grid>
             </Main>
         </DetailWrapper>
     );
-};
-
-Inventory.contextTypes = {
-    store: PropTypes.object
 };
 
 export default Inventory;

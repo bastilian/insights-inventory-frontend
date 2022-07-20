@@ -25,7 +25,6 @@ import { toggleDrawer } from '../../store/actions';
  */
 const TopBar = ({
     entity,
-    loaded,
     actions,
     deleteEntity,
     addNotification,
@@ -54,16 +53,14 @@ const TopBar = ({
     return (
         <Split className="ins-c-inventory__detail--header">
             <SplitItem isFilled>
-                {
-                    loaded ? (
-                        <Flex>
-                            <FlexItem>
-                                <TitleWrapper>
-                                    <Title headingLevel="h1" size='2xl'>{ entity && entity.display_name }</Title>
-                                </TitleWrapper>
-                            </FlexItem>
-                            {
-                                showTags &&
+                <Flex>
+                    <FlexItem>
+                        <TitleWrapper>
+                            <Title headingLevel="h1" size='2xl'>{ entity && entity.display_name }</Title>
+                        </TitleWrapper>
+                    </FlexItem>
+                    {
+                        showTags &&
                                 <FlexItem>
                                     <TagsWrapper>
                                         <TagWithDialog
@@ -73,66 +70,58 @@ const TopBar = ({
                                         <TagsModal />
                                     </TagsWrapper>
                                 </FlexItem>
-                            }
-                        </Flex>
-                    ) :
-                        <Skeleton size={ SkeletonSize.md } />
-                }
+                    }
+                </Flex>
             </SplitItem>
-            {
-                <SplitItem>
-                    {
-                        loaded ?
-                            <Flex>
-                                {showDelete && <FlexItem>
-                                    <DeleteWrapper>
-                                        <Button
-                                            onClick={ () => setIsModalOpen(true) }
-                                            variant="secondary">
+            <SplitItem>
+
+                <Flex>
+                    {showDelete && <FlexItem>
+                        <DeleteWrapper>
+                            <Button
+                                onClick={ () => setIsModalOpen(true) }
+                                variant="secondary">
                                         Delete
-                                        </Button>
-                                    </DeleteWrapper>
-                                </FlexItem>}
-                                { inventoryActions?.length > 0 && (
-                                    <FlexItem>
-                                        <ActionsWrapper>
-                                            <Dropdown
-                                                onSelect={ () => setIsOpen(false) }
-                                                toggle={ <DropdownToggle
-                                                    onToggle={(isOpen) => setIsOpen(isOpen)}
-                                                >Actions</DropdownToggle>}
-                                                isOpen={ isOpen }
-                                                position={ DropdownPosition.right }
-                                                dropdownItems={
-                                                    inventoryActions.map(({ title, ...action }, key) => (
-                                                        <DropdownItem
-                                                            key={ key }
-                                                            component="button"
-                                                            onClick={
-                                                                (event) => action.onClick(event, action, action.key || key)
-                                                            }
-                                                            {...action}
-                                                        >
-                                                            { title }
-                                                        </DropdownItem>)
-                                                    ) }
-                                            />
-                                        </ActionsWrapper>
-                                    </FlexItem>)}
-                                <FlexItem>
-                                    {
-                                        showInventoryDrawer &&
+                            </Button>
+                        </DeleteWrapper>
+                    </FlexItem>}
+                    { inventoryActions?.length > 0 && (
+                        <FlexItem>
+                            <ActionsWrapper>
+                                <Dropdown
+                                    onSelect={ () => setIsOpen(false) }
+                                    toggle={ <DropdownToggle
+                                        onToggle={(isOpen) => setIsOpen(isOpen)}
+                                    >Actions</DropdownToggle>}
+                                    isOpen={ isOpen }
+                                    position={ DropdownPosition.right }
+                                    dropdownItems={
+                                        inventoryActions.map(({ title, ...action }, key) => (
+                                            <DropdownItem
+                                                key={ key }
+                                                component="button"
+                                                onClick={
+                                                    (event) => action.onClick(event, action, action.key || key)
+                                                }
+                                                {...action}
+                                            >
+                                                { title }
+                                            </DropdownItem>)
+                                        ) }
+                                />
+                            </ActionsWrapper>
+                        </FlexItem>)}
+                    <FlexItem>
+                        {
+                            showInventoryDrawer &&
                                         <Button onClick={() => dispatch(toggleDrawer(true))}>
                                             Show more information
                                         </Button>
-                                    }
-                                </FlexItem>
-                            </Flex>
-                            :
-                            <Skeleton size={ SkeletonSize.lg } />
-                    }
-                </SplitItem>
-            }
+                        }
+                    </FlexItem>
+                </Flex>
+
+            </SplitItem>
             { isModalOpen && (
                 <DeleteModal
                     handleModalToggle={() => setIsModalOpen(!isModalOpen)}

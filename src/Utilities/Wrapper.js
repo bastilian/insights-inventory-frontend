@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { usePermissionsWithContext } from '@redhat-cloud-services/frontend-components-utilities/RBACHook';
 
-const RenderWrapper = ({ cmp: Component, hideLoader, isRbacEnabled, inventoryRef, store, ...props }) => {
+const RenderWrapper = ({ cmp: Component, hideLoader, isRbacEnabled, inventoryRef, ...props }) => {
     const { hasAccess } = usePermissionsWithContext([
         'inventory:*:*',
         'inventory:*:read',
@@ -15,7 +15,6 @@ const RenderWrapper = ({ cmp: Component, hideLoader, isRbacEnabled, inventoryRef
                 ref: inventoryRef
             }}
             hasAccess={isRbacEnabled ? hasAccess : true}
-            store={ store }
         />
     );
 };

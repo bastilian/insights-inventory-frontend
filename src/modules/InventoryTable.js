@@ -1,8 +1,7 @@
 import React from 'react';
 import AsyncInventory from './AsyncInventory';
 
-const BaseInventoryTable = (props) => <AsyncInventory componentName="InventoryTable" {...props} />;
-
-const InventoryTable = React.forwardRef((props, ref) => <BaseInventoryTable innerRef={ref} {...props} />);
+// eslint-disable-next-line react/display-name
+const InventoryTable = React.forwardRef((props, ref) => <AsyncInventory componentName="InventoryTable" ref={ref} {...props} />);
 
 export default InventoryTable;

@@ -1,59 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useEffect, forwardRef } from 'react';
 import PropTypes from 'prop-types';
-import { Provider } from 'react-redux';
-import { Router } from 'react-router-dom';
-import { RBACProvider } from '@redhat-cloud-services/frontend-components-utilities/RBACHook';
 import LoadingFallback from '../components/SpinnerFallback';
 
-import { inventoryConnector } from '../Utilities/inventoryConnector';
-import * as storeMod from '../store/redux';
+import * as store from '../store/redux';
 import * as utils from '../Utilities/index';
-import * as apiMod from '../api/index';
+import * as api from '../api/index';
 
-const AsyncInventory = ({ componentName, onLoad, store, history, innerRef, ...props }) => {
-    const [Component, setComponent] = useState();
+const components =
+{
+    InventoryTable: React.lazy(() => (
+        import('../components/InventoryTable/InventoryTable')
+    )),
+    DetailWrapper: React.lazy(() => (
+        import('../components/InventoryDetail/DetailWrapper')
+    )),
+    AppInfo: React.lazy(() => (
+        import('../components/InventoryDetail/AppInfo')
+    )),
+    InventoryDetailHead: React.lazy(() => (
+        import('../components/InventoryDetail/InventoryDetail')
+    )),
+    InventoryDetail: React.lazy(() => (
+        import('../components/InventoryDetail/FullDetail')
+    )),
+    TagWithDialog: React.lazy(() => (
+        import('../Utilities/TagWithDialog')
+    ))
+};
+
+const AsyncInventory = forwardRef(({ componentName, onLoad, ...props }, ref) => { // eslint-disable-line react/display-name
+    const Component = components[componentName];
+
     useEffect(() => {
-        const [{ mergeWithDetail, ...rest }, shared, api] = [
-            storeMod,
-            utils,
-            apiMod
-        ];
-        const { [componentName]: InvCmp } = inventoryConnector(store, undefined, undefined, true);
-
-        onLoad({
-            ...rest,
-            ...shared,
-            api,
-            mergeWithDetail
+        onLoad && console.log('Onload run', componentName, onLoad, Component);
+        onLoad?.({
+            ...store,
+            ...utils,
+            api
         });
-
-        setComponent(() => InvCmp);
-
-    }, [componentName]);
+    }, []);
 
     return (
-        <Provider store={store}>
-            <Router history={history}>
-                <RBACProvider appName="inventory">
-                    {Component && <Component {...props} fallback={LoadingFallback} ref={innerRef} />}
-                </RBACProvider>
-            </Router>
-        </Provider>
+        <Suspense fallback={<LoadingFallback />}>
+            <Component ref={ref} {...props}  />
+        </Suspense>
     );
-};
+});
 
 AsyncInventory.propTypes = {
-    store: PropTypes.object,
     onLoad: PropTypes.func,
-    componentName: PropTypes.string,
-    history: PropTypes.object,
-    innerRef: PropTypes.shape({
-        current: PropTypes.any
-    })
-};
-
-AsyncInventory.defaultProps = {
-    onLoad: () => undefined
+    componentName: PropTypes.string
 };
 
 export default AsyncInventory;

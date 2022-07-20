@@ -37,53 +37,54 @@ const InventoryDetail = ({
 }) => {
     const { inventoryId } = useParams();
     const dispatch = useDispatch();
-    const loaded = useSelector(({ entityDetails }) => entityDetails?.loaded || false);
+    const loaded = useSelector(({ entityDetails }) => entityDetails?.loaded);
     const entity = useSelector(({ entityDetails }) => entityDetails?.entity);
-    useEffect(() => {
-        const currId = inventoryId || location.pathname.replace(/\/$/, '').split('/').pop();
-        if (!entity || !(entity?.id === currId) || !loaded) {
-            dispatch(loadEntity(currId, { hasItems: true }, { showTags }));
-        }
-    }, []);
+
+    // useEffect(() => {
+    //     const currId = inventoryId || location.pathname.replace(/\/$/, '').split('/').pop();
+    //     if (!entity || !(entity?.id === currId) || !loaded) {
+    //         dispatch(loadEntity(currId, { hasItems: true }, { showTags }));
+    //     }
+    // }, []);
+
     return <div className="ins-entity-detail">
-        {loaded && !entity ? (
-            <SystemNotFound
+        {
+            loaded && (entity ? (
+                <>
+                    <TopBar
+                        entity={ entity }
+                        onBackToListClick={ onBackToListClick }
+                        actions={ actions }
+                        deleteEntity={ (systems, displayName, callback) => {
+                            const action = deleteEntity(systems, displayName);
+                            dispatch(reloadWrapper(action, callback));
+                        } }
+                        addNotification={ (payload) => dispatch(addNotification(payload))}
+                        hideInvLink={ hideInvLink }
+                        showInventoryDrawer={ showInventoryDrawer }
+                        showDelete={ showDelete }
+                        showTags={ showTags }
+                        TitleWrapper={TitleWrapper}
+                        TagsWrapper={TagsWrapper}
+                        DeleteWrapper={DeleteWrapper}
+                        ActionsWrapper={ActionsWrapper}
+                    />
+                    <FactsInfo
+                        entity={ entity }
+                        UUIDWrapper={UUIDWrapper}
+                        LastSeenWrapper={LastSeenWrapper}
+                    />
+
+                    {!entity.insights_id && <InsightsPrompt />}
+
+                    {children}
+
+                    <ApplicationDetails onTabSelect={ onTabSelect } appList={ appList } />
+                </>
+            ) : <SystemNotFound
                 onBackToListClick={onBackToListClick}
                 inventoryId={location.pathname.split('/')[location.pathname.split('/').length - 1]}
-            />
-        ) : <Fragment>
-            <TopBar
-                entity={ entity }
-                loaded={ loaded }
-                onBackToListClick={ onBackToListClick }
-                actions={ actions }
-                deleteEntity={ (systems, displayName, callback) => {
-                    const action = deleteEntity(systems, displayName);
-                    dispatch(reloadWrapper(action, callback));
-                } }
-                addNotification={ (payload) => dispatch(addNotification(payload))}
-                hideInvLink={ hideInvLink }
-                showInventoryDrawer={ showInventoryDrawer }
-                showDelete={ showDelete }
-                showTags={ showTags }
-                TitleWrapper={TitleWrapper}
-                TagsWrapper={TagsWrapper}
-                DeleteWrapper={DeleteWrapper}
-                ActionsWrapper={ActionsWrapper}
-            />
-            <FactsInfo
-                loaded={ loaded }
-                entity={ entity }
-                UUIDWrapper={UUIDWrapper}
-                LastSeenWrapper={LastSeenWrapper}
-            />
-            {(loaded && !entity?.insights_id) && <InsightsPrompt />}
-            {children}
-        </Fragment>
-        }
-        {loaded && entity && (
-            <ApplicationDetails onTabSelect={ onTabSelect } appList={ appList } />
-        )}
+            />) }
     </div>;
 };
 

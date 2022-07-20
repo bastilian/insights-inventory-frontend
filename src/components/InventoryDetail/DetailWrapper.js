@@ -12,18 +12,17 @@ import {
     StackItem
 } from '@patternfly/react-core';
 import PropTypes from 'prop-types';
-import { useSelector, useDispatch, useStore } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { toggleDrawer } from '../../store/actions';
 import { BasicInfo, SystemIssues } from '../InventoryDetailDrawer';
 import FactsInfo from './FactsInfo';
 
 const DetailWrapper = ({ children, hideInvLink, showTags, Wrapper, className, appName, ...props }) => {
     const dispatch = useDispatch();
-    const store = useStore();
-    const isExpanded = useSelector(({ entityDetails: { isToggleOpened } }) => isToggleOpened);
-    const entity = useSelector(({ entityDetails: { entity } }) => entity);
-    const loaded = useSelector(({ entityDetails: { loaded } }) => loaded);
-
+    const isExpanded = useSelector(({ entityDetails: { isToggleOpened } = {} }) => isToggleOpened);
+    const entity = useSelector(({ entityDetails: { entity } = {} }) => entity);
+    const loaded = useSelector(({ entityDetails: { loaded } = {} }) => loaded);
+    console.log('WRAAA', Wrapper);
     return <Drawer
         className={`ins-c-inventory__drawer ${className || ''}`}
         isExpanded={isExpanded}
@@ -45,13 +44,12 @@ const DetailWrapper = ({ children, hideInvLink, showTags, Wrapper, className, ap
                                 <SystemIssues isOpened={isExpanded} />
                             </StackItem>
                             <StackItem isFilled className="ins-c-inventory__drawer--facts">
-                                <FactsInfo entity={entity} loaded={loaded} />
+                                {loaded && <FactsInfo entity={entity} />}
                                 {
                                     isExpanded &&
                                     loaded &&
                                     Wrapper &&
                                     <Wrapper
-                                        store={store}
                                         appName={appName}
                                     />
                                 }

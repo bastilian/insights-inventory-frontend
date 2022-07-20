@@ -27,6 +27,8 @@ export const defaultState = {
     tagsLoaded: false,
     allTagsLoaded: false,
     invConfig: {},
+    page: 1,
+    perPage: 50,
     sortBy: {
         key: 'updated',
         direction: 'desc'

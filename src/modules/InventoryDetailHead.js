@@ -1,8 +1,6 @@
 import React from 'react';
 import AsyncInventory from './AsyncInventory';
 
-const BaseInventoryDetailHead = (props) => <AsyncInventory componentName="InventoryDetailHead" {...props} />;
-
-const InventoryDetailHead = React.forwardRef((props, ref) => <BaseInventoryDetailHead innerRef={ref} {...props} />);
+const InventoryDetailHead = React.forwardRef((props, ref) => <AsyncInventory componentName="InventoryDetailHead" ref={ref} {...props} />);
 
 export default InventoryDetailHead;

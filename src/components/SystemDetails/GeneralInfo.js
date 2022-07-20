@@ -28,4 +28,4 @@ GeneralInfoTab.propTypes = {
     getRegistry: PropTypes.func
 };
 
-export default GeneralInfoTab;
+export default GeneralInformation;

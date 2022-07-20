@@ -2,7 +2,7 @@
 import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { useLocation } from 'react-router-dom';
-import { useStore, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Skeleton, SkeletonSize } from '@redhat-cloud-services/frontend-components/Skeleton';
 
 /**
@@ -11,7 +11,6 @@ import { Skeleton, SkeletonSize } from '@redhat-cloud-services/frontend-componen
  * @param {*} props `componentsMapper` if you want to pass different components list.
  */
 const AppInfo = ({ componentMapper, appList }) => {
-    const store = useStore();
     const { search } = useLocation();
     const searchParams = new URLSearchParams(search);
     const loaded = useSelector(({ entityDetails }) => entityDetails?.loaded);
@@ -24,24 +23,20 @@ const AppInfo = ({ componentMapper, appList }) => {
         }
     });
     const Cmp = componentMapper || activeApp?.component;
-
-    if (loaded === true && !entity) {
-        return null;
-    }
+    console.log(activeApp?.component);
 
     return (
         <Fragment>
             {
-                loaded ? activeApp && (
-                    <div className={ `ins-active-app-${activeApp?.name}` }>
+                loaded ? (
+                    ((activeApp && entity) ? <div className={ `ins-active-app-${activeApp?.name}` }>
                         { Cmp ?
                             <Cmp
-                                store={store}
                                 inventoryId={entity?.id}
                                 appName={activeApp?.name}
                             /> :
                             'missing component'}
-                    </div>
+                    </div> : '')
                 ) : <Skeleton size={ SkeletonSize.md } />
             }
         </Fragment>

@@ -7,7 +7,7 @@ import { InventoryTable } from '../components/InventoryTable';
 import * as inventoryFitlers from '../components/filters';
 import DetailRenderer from '../components/InventoryDetail/DetailRenderer';
 
-export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabled = true) {
+export function inventoryConnector(_store, componentsMapper, Wrapper, isRbacEnabled = true) {
     const showInventoryDrawer = Boolean(Wrapper);
     return {
         InventoryTable: React.forwardRef(
@@ -15,7 +15,6 @@ export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabl
                 { ...props }
                 isRbacEnabled={ isRbacEnabled }
                 inventoryRef={ ref }
-                store={ store }
                 cmp={ InventoryTable }
             />
         ),
@@ -26,7 +25,6 @@ export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabl
                 {...componentsMapper}
                 isRbacEnabled={ isRbacEnabled }
                 inventoryRef={ ref }
-                store={ store }
                 cmp={ AppInfo }
             />
         ),
@@ -37,7 +35,6 @@ export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabl
                 {...componentsMapper}
                 isRbacEnabled={ isRbacEnabled }
                 inventoryRef={ ref }
-                store={ store }
                 // eslint-disable-next-line react/prop-types
                 showInventoryDrawer={ showInventoryDrawer && !props.hideInvDrawer }
                 cmp={ InventoryDetail }
@@ -50,7 +47,6 @@ export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabl
                 {...componentsMapper}
                 isRbacEnabled={ isRbacEnabled }
                 inventoryRef={ ref }
-                store={ store }
                 showInventoryDrawer={ showInventoryDrawer }
                 cmp={ FullDetail }
             />
@@ -60,7 +56,6 @@ export function inventoryConnector(store, componentsMapper, Wrapper, isRbacEnabl
                 { ...props }
                 inventoryRef={ ref }
                 isRbacEnabled={ isRbacEnabled }
-                store={ store }
                 cmp={ TagWithDialog }
             />
         ),
